@@ -35,3 +35,8 @@ func (q Queue) Dequeue() (storage.Value, error) {
 	}
 	return nil, fmt.Errorf("queue empty")
 }
+
+//Close closes the queue
+func (q Queue) Close() error {
+	return nil
+}

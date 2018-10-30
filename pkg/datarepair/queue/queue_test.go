@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
-
 	"storj.io/storj/pkg/pb"
 	"storj.io/storj/storage/redis"
 	"storj.io/storj/storage/redis/redisserver"
@@ -19,7 +18,7 @@ import (
 )
 
 func TestEnqueueDequeue(t *testing.T) {
-	db := teststore.New()
+	db := teststore.NewQueue()
 	q := NewQueue(db)
 	seg := &pb.InjuredSegment{
 		Path:       "abc",
@@ -34,26 +33,15 @@ func TestEnqueueDequeue(t *testing.T) {
 }
 
 func TestDequeueEmptyQueue(t *testing.T) {
-	db := teststore.New()
+	db := teststore.NewQueue()
 	q := NewQueue(db)
 	s, err := q.Dequeue()
 	assert.Error(t, err)
 	assert.Equal(t, pb.InjuredSegment{}, s)
 }
 
-func TestForceError(t *testing.T) {
-	db := teststore.New()
-	q := NewQueue(db)
-	err := q.Enqueue(&pb.InjuredSegment{Path: "abc", LostPieces: []int32{int32(0)}})
-	assert.NoError(t, err)
-	db.ForceError++
-	item, err := q.Dequeue()
-	assert.Equal(t, pb.InjuredSegment{}, item)
-	assert.Error(t, err)
-}
-
 func TestSequential(t *testing.T) {
-	db := teststore.New()
+	db := teststore.NewQueue()
 	q := NewQueue(db)
 	const N = 100
 	var addSegs []*pb.InjuredSegment
@@ -74,7 +62,7 @@ func TestSequential(t *testing.T) {
 }
 
 func TestParallel(t *testing.T) {
-	queue := NewQueue(teststore.New())
+	queue := NewQueue(teststore.NewQueue())
 	const N = 100
 	errs := make(chan error, N*2)
 	entries := make(chan *pb.InjuredSegment, N*2)
@@ -139,7 +127,7 @@ func BenchmarkRedisSequential(b *testing.B) {
 }
 
 func BenchmarkTeststoreSequential(b *testing.B) {
-	q := NewQueue(teststore.New())
+	q := NewQueue(teststore.NewQueue())
 	benchmarkSequential(b, q)
 }
 
@@ -176,7 +164,7 @@ func BenchmarkRedisParallel(b *testing.B) {
 }
 
 func BenchmarkTeststoreParallel(b *testing.B) {
-	q := NewQueue(teststore.New())
+	q := NewQueue(teststore.NewQueue())
 	benchmarkParallel(b, q)
 }
 
