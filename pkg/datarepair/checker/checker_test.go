@@ -25,6 +25,7 @@ import (
 	"storj.io/storj/storage/redis"
 	"storj.io/storj/storage/redis/redisserver"
 	"storj.io/storj/storage/teststore"
+	"storj.io/storj/storage/testqueue"
 )
 
 var ctx = context.Background()
@@ -33,7 +34,7 @@ func TestIdentifyInjuredSegments(t *testing.T) {
 	logger := zap.NewNop()
 	pointerdb := pointerdb.NewServer(teststore.New(), &overlay.Cache{}, logger, pointerdb.Config{}, nil)
 
-	repairQueue := queue.NewQueue(teststore.New())
+	repairQueue := queue.NewQueue(testqueue.New())
 
 	const N = 25
 	nodes := []*pb.Node{}
@@ -108,7 +109,7 @@ func TestOfflineAndOnlineNodes(t *testing.T) {
 	logger := zap.NewNop()
 	pointerdb := pointerdb.NewServer(teststore.New(), &overlay.Cache{}, logger, pointerdb.Config{}, nil)
 
-	repairQueue := queue.NewQueue(teststore.New())
+	repairQueue := queue.NewQueue(testqueue.New())
 	const N = 50
 	nodes := []*pb.Node{}
 	nodeIDs := []dht.NodeID{}

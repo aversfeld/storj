@@ -1,7 +1,7 @@
 // Copyright (C) 2018 Storj Labs, Inc.
 // See LICENSE for copying information.
 
-package testqueue
+package testsuite
 
 import (
 	"testing"
@@ -10,8 +10,8 @@ import (
 	"storj.io/storj/storage"
 )
 
-// RunTests runs common storage.Queue tests
-func RunTests(t *testing.T, q storage.Queue) {
+// RunQueueTests runs common storage.Queue tests
+func RunQueueTests(t *testing.T, q storage.Queue) {
 	t.Run("basic", func(t *testing.T) { testBasic(t, q) })
 }
 

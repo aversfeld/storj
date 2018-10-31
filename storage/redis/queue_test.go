@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"storj.io/storj/storage/redis/redisserver"
-	"storj.io/storj/storage/testqueue"
+	"storj.io/storj/storage/testsuite"
 )
 
 func TestQueue(t *testing.T) {
@@ -22,5 +22,5 @@ func TestQueue(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testqueue.RunTests(t, client)
+	testsuite.RunQueueTests(t, client)
 }

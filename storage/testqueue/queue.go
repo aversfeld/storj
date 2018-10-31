@@ -13,8 +13,8 @@ import (
 
 //Queue is a threadsafe FIFO queue implementing storage.Queue
 type Queue struct {
-	s  *list.List
 	mu sync.Mutex
+	s  *list.List
 }
 
 //New returns a queue suitable for testing

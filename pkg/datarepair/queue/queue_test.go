@@ -14,11 +14,11 @@ import (
 	"storj.io/storj/pkg/pb"
 	"storj.io/storj/storage/redis"
 	"storj.io/storj/storage/redis/redisserver"
-	"storj.io/storj/storage/teststore"
+	"storj.io/storj/storage/testqueue"
 )
 
 func TestEnqueueDequeue(t *testing.T) {
-	db := teststore.NewQueue()
+	db := testqueue.New()
 	q := NewQueue(db)
 	seg := &pb.InjuredSegment{
 		Path:       "abc",
@@ -33,7 +33,7 @@ func TestEnqueueDequeue(t *testing.T) {
 }
 
 func TestDequeueEmptyQueue(t *testing.T) {
-	db := teststore.NewQueue()
+	db := testqueue.New()
 	q := NewQueue(db)
 	s, err := q.Dequeue()
 	assert.Error(t, err)
@@ -41,7 +41,7 @@ func TestDequeueEmptyQueue(t *testing.T) {
 }
 
 func TestSequential(t *testing.T) {
-	db := teststore.NewQueue()
+	db := testqueue.New()
 	q := NewQueue(db)
 	const N = 100
 	var addSegs []*pb.InjuredSegment
@@ -62,7 +62,7 @@ func TestSequential(t *testing.T) {
 }
 
 func TestParallel(t *testing.T) {
-	queue := NewQueue(teststore.NewQueue())
+	queue := NewQueue(testqueue.New())
 	const N = 100
 	errs := make(chan error, N*2)
 	entries := make(chan *pb.InjuredSegment, N*2)
@@ -127,7 +127,7 @@ func BenchmarkRedisSequential(b *testing.B) {
 }
 
 func BenchmarkTeststoreSequential(b *testing.B) {
-	q := NewQueue(teststore.NewQueue())
+	q := NewQueue(testqueue.New())
 	benchmarkSequential(b, q)
 }
 
@@ -164,7 +164,7 @@ func BenchmarkRedisParallel(b *testing.B) {
 }
 
 func BenchmarkTeststoreParallel(b *testing.B) {
-	q := NewQueue(teststore.NewQueue())
+	q := NewQueue(testqueue.New())
 	benchmarkParallel(b, q)
 }
 

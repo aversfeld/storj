@@ -5,8 +5,10 @@ package testqueue
 
 import (
 	"testing"
+
+	"storj.io/storj/storage/testsuite"
 )
 
 func TestQueue(t *testing.T) {
-	RunTests(t, New())
+	testsuite.RunQueueTests(t, New())
 }
