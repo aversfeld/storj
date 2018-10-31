@@ -67,8 +67,8 @@ type KeyValueStore interface {
 	Close() error
 }
 
-//DistQueue is an interface describing queue stores like redis
-type DistQueue interface {
+//Queue is an interface describing queue stores like redis
+type Queue interface {
 	//Enqueue add a FIFO element
 	Enqueue(Value) error
 	//Dequeue removes a FIFO element

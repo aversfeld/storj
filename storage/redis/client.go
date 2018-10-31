@@ -209,7 +209,7 @@ func (client *Client) allPrefixedItems(prefix, first, last storage.Key) (storage
 	return all, nil
 }
 
-//Enqueue add a FIFO element, for DistQueue
+//Enqueue add a FIFO element, for Queue
 func (client *Client) Enqueue(value storage.Value) error {
 	err := client.db.LPush("queue", []byte(value)).Err()
 	if err != nil {
@@ -218,7 +218,7 @@ func (client *Client) Enqueue(value storage.Value) error {
 	return nil
 }
 
-//Dequeue removes a FIFO element, for DistQueue
+//Dequeue removes a FIFO element, for Queue
 func (client *Client) Dequeue() (storage.Value, error) {
 	out, err := client.db.RPop("queue").Bytes()
 	if err != nil {

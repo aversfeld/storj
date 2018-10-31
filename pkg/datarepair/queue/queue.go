@@ -4,8 +4,6 @@
 package queue
 
 import (
-	"sync"
-
 	"github.com/golang/protobuf/proto"
 	"storj.io/storj/pkg/pb"
 	"storj.io/storj/storage"
@@ -19,16 +17,12 @@ type RepairQueue interface {
 
 // Queue implements the RepairQueue interface
 type Queue struct {
-	mu sync.Mutex
-	db storage.DistQueue
+	db storage.Queue
 }
 
 // NewQueue returns a pointer to a new Queue instance with an initialized connection to Redis
-func NewQueue(client storage.DistQueue) *Queue {
-	return &Queue{
-		mu: sync.Mutex{},
-		db: client,
-	}
+func NewQueue(client storage.Queue) *Queue {
+	return &Queue{db: client}
 }
 
 // Enqueue adds a repair segment to the queue
@@ -37,8 +31,7 @@ func (q *Queue) Enqueue(qi *pb.InjuredSegment) error {
 	if err != nil {
 		return Error.New("error marshalling injured seg %s", err)
 	}
-	q.mu.Lock()
-	defer q.mu.Unlock()
+
 	err = q.db.Enqueue(val)
 	if err != nil {
 		return Error.New("error adding injured seg to queue %s", err)
@@ -48,9 +41,6 @@ func (q *Queue) Enqueue(qi *pb.InjuredSegment) error {
 
 // Dequeue returns the next repair segement and removes it from the queue
 func (q *Queue) Dequeue() (pb.InjuredSegment, error) {
-	q.mu.Lock()
-	defer q.mu.Unlock()
-
 	val, err := q.db.Dequeue()
 	if err != nil {
 		return pb.InjuredSegment{}, Error.New("error obtaining item from repair queue %s", err)
