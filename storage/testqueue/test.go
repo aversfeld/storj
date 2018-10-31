@@ -1,7 +1,7 @@
 // Copyright (C) 2018 Storj Labs, Inc.
 // See LICENSE for copying information.
 
-package teststore
+package testqueue
 
 import (
 	"testing"
@@ -10,8 +10,12 @@ import (
 	"storj.io/storj/storage"
 )
 
-func TestQueue(t *testing.T) {
-	q := NewQueue()
+// RunTests runs common storage.Queue tests
+func RunTests(t *testing.T, q storage.Queue) {
+	t.Run("basic", func(t *testing.T) { testBasic(t, q) })
+}
+
+func testBasic(t *testing.T, q storage.Queue) {
 	q.Enqueue(storage.Value("hello"))
 	q.Enqueue(storage.Value("world"))
 	out, err := q.Dequeue()

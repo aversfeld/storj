@@ -1,7 +1,7 @@
 // Copyright (C) 2018 Storj Labs, Inc.
 // See LICENSE for copying information.
 
-package teststore
+package testqueue
 
 import (
 	"container/list"
@@ -17,8 +17,8 @@ type Queue struct {
 	mu sync.Mutex
 }
 
-//NewQueue returns a queue suitable for testing
-func NewQueue() *Queue {
+//New returns a queue suitable for testing
+func New() *Queue {
 	return &Queue{s: list.New(), mu: sync.Mutex{}}
 }
 
