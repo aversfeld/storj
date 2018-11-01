@@ -146,6 +146,10 @@ func lookupResponsesToNodes(responses *pb.LookupResponses) []*pb.Node {
 func dataAccounting(healthyNodeIds []string, pointer *pb.Pointer) {
 	pointersize := pointer.GetSize()
 	minReq := pointer.Remote.Redundancy.GetMinReq()
+	if minReq <= 0 {
+		zap.L().Error("minReq must be an int greater than 0")
+		return
+	}
 	nodeSize := pointersize / int64(minReq)
 	for _, id := range healthyNodeIds {
 		go func(id string, nodeSize int64) {

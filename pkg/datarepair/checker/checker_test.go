@@ -45,8 +45,10 @@ func TestIdentifyInjuredSegments(t *testing.T) {
 		ids := []string{s + "a", s + "b", s + "c", s + "d"}
 
 		p := &pb.Pointer{
+			Size: int64(10),
 			Remote: &pb.RemoteSegment{
 				Redundancy: &pb.RedundancyScheme{
+					MinReq: int32(2),
 					RepairThreshold: int32(2),
 				},
 				PieceId: strconv.Itoa(i),
