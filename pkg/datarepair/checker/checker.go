@@ -20,7 +20,6 @@ import (
 
 // Checker is the interface for the data repair queue
 type Checker interface {
-	IdentifyInjuredSegments(ctx context.Context) (err error)
 	Run(ctx context.Context) error
 }
 
@@ -51,7 +50,7 @@ func (c *checker) Run(ctx context.Context) (err error) {
 	defer mon.Task()(&ctx)(&err)
 
 	for {
-		err = c.IdentifyInjuredSegments(ctx)
+		err = c.identifyInjuredSegments(ctx)
 		if err != nil {
 			zap.L().Error("Checker failed", zap.Error(err))
 		}
@@ -65,7 +64,7 @@ func (c *checker) Run(ctx context.Context) (err error) {
 }
 
 // IdentifyInjuredSegments checks for missing pieces off of the pointerdb and overlay cache
-func (c *checker) IdentifyInjuredSegments(ctx context.Context) (err error) {
+func (c *checker) identifyInjuredSegments(ctx context.Context) (err error) {
 	defer mon.Task()(&ctx)(&err)
 	c.logger.Debug("entering pointerdb iterate")
 
@@ -139,4 +138,8 @@ func lookupResponsesToNodes(responses *pb.LookupResponses) []*pb.Node {
 		nodes = append(nodes, n)
 	}
 	return nodes
+}
+
+func (c *checker) dataAccounting() {
+
 }
