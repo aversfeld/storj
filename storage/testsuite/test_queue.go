@@ -17,9 +17,9 @@ func RunQueueTests(t *testing.T, q storage.Queue) {
 
 func testBasic(t *testing.T, q storage.Queue) {
 	err := q.Enqueue(storage.Value("hello"))
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 	err = q.Enqueue(storage.Value("world"))
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 	out, err := q.Dequeue()
 	assert.Nil(t, err)
 	assert.Equal(t, out, storage.Value("hello"))

@@ -24,8 +24,8 @@ import (
 	"storj.io/storj/pkg/pointerdb"
 	"storj.io/storj/storage/redis"
 	"storj.io/storj/storage/redis/redisserver"
-	"storj.io/storj/storage/teststore"
 	"storj.io/storj/storage/testqueue"
+	"storj.io/storj/storage/teststore"
 )
 
 var ctx = context.Background()
