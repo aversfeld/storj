@@ -13,7 +13,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-
 	"storj.io/storj/pkg/auth"
 	"storj.io/storj/pkg/datarepair/queue"
 	"storj.io/storj/pkg/dht"
