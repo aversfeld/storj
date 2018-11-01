@@ -10,6 +10,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"go.uber.org/zap"
 
+	"storj.io/storj/pkg/accounting"
 	"storj.io/storj/pkg/datarepair/queue"
 	"storj.io/storj/pkg/dht"
 	"storj.io/storj/pkg/node"
@@ -86,12 +87,12 @@ func (c *checker) identifyInjuredSegments(ctx context.Context) (err error) {
 				for _, p := range pieces {
 					nodeIDs = append(nodeIDs, node.IDFromString(p.NodeId))
 				}
-				missingPieces, err := c.offlineNodes(ctx, nodeIDs)
+				missingPieces, healthyIds, err := c.offlineOnlineNodes(ctx, nodeIDs)
 				if err != nil {
 					return Error.New("error getting missing offline nodes %s", err)
 				}
-				numHealthy := len(nodeIDs) - len(missingPieces)
-				if int32(numHealthy) < pointer.Remote.Redundancy.RepairThreshold {
+				go dataAccounting(healthyIds, pointer)
+				if int32(len(healthyIds)) < pointer.Remote.Redundancy.RepairThreshold {
 					err = c.repairQueue.Enqueue(&pb.InjuredSegment{
 						Path:       string(item.Key),
 						LostPieces: missingPieces,
@@ -107,19 +108,21 @@ func (c *checker) identifyInjuredSegments(ctx context.Context) (err error) {
 	return err
 }
 
-// returns the indices of offline and online nodes
-func (c *checker) offlineNodes(ctx context.Context, nodeIDs []dht.NodeID) (offline []int32, err error) {
+// returns the indices of offline and online nodeIds
+func (c *checker) offlineOnlineNodes(ctx context.Context, nodeIDs []dht.NodeID) (offline []int32, online []string, err error) {
 	responses, err := c.overlay.BulkLookup(ctx, nodeIDsToLookupRequests(nodeIDs))
 	if err != nil {
-		return []int32{}, err
+		return []int32{}, []string{}, err
 	}
 	nodes := lookupResponsesToNodes(responses)
 	for i, n := range nodes {
 		if n == nil {
 			offline = append(offline, int32(i))
+		} else {
+			online = append(online, n.Id)
 		}
 	}
-	return offline, nil
+	return offline, online, nil
 }
 
 func nodeIDsToLookupRequests(nodeIDs []dht.NodeID) *pb.LookupRequests {
@@ -140,6 +143,14 @@ func lookupResponsesToNodes(responses *pb.LookupResponses) []*pb.Node {
 	return nodes
 }
 
-func (c *checker) dataAccounting() {
-
+func dataAccounting(healthyNodeIds []string, pointer *pb.Pointer) {
+	pointersize := pointer.GetSize()
+	minReq := pointer.Remote.Redundancy.GetMinReq()
+	nodeSize := pointersize / int64(minReq)
+	for _, id := range healthyNodeIds {
+		go func(id string, nodeSize int64) {
+			err := accounting.Update(id, nodeSize)
+			zap.L().Error("accounting update failed", zap.Error(err))
+		}(id, nodeSize)
+	}
 }

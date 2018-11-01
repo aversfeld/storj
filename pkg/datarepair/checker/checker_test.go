@@ -106,7 +106,7 @@ func TestIdentifyInjuredSegments(t *testing.T) {
 	}
 }
 
-func TestOfflineAndOnlineNodes(t *testing.T) {
+func TestOfflineOnlineNodes(t *testing.T) {
 	logger := zap.NewNop()
 	pointerdb := pointerdb.NewServer(teststore.New(), &overlay.Cache{}, logger, pointerdb.Config{}, nil)
 
@@ -115,6 +115,7 @@ func TestOfflineAndOnlineNodes(t *testing.T) {
 	nodes := []*pb.Node{}
 	nodeIDs := []dht.NodeID{}
 	expectedOffline := []int32{}
+	expectedOnline := []string{}
 	for i := 0; i < N; i++ {
 		str := strconv.Itoa(i)
 		n := &pb.Node{Id: str, Address: &pb.NodeAddress{Address: str}}
@@ -126,15 +127,17 @@ func TestOfflineAndOnlineNodes(t *testing.T) {
 		} else {
 			id := node.IDFromString(str)
 			nodeIDs = append(nodeIDs, id)
+			expectedOnline = append(expectedOnline, id.String())
 		}
 	}
 	overlayServer := mocks.NewOverlay(nodes)
 	limit := 0
 	interval := time.Second
 	checker := newChecker(pointerdb, repairQueue, overlayServer, limit, logger, interval)
-	offline, err := checker.offlineNodes(ctx, nodeIDs)
+	offline, online, err := checker.offlineOnlineNodes(ctx, nodeIDs)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedOffline, offline)
+	assert.Equal(t, expectedOnline, online)
 }
 
 func BenchmarkIdentifyInjuredSegments(b *testing.B) {
