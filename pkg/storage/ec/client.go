@@ -157,7 +157,10 @@ func (ec *ecClient) Get(ctx context.Context, nodes []*pb.Node, es eestream.Erasu
 	pieceID client.PieceID, size int64, pba *pb.PayerBandwidthAllocation, authorization *pb.SignedMessage) (rr ranger.Ranger, err error) {
 	defer mon.Task()(&ctx)(&err)
 
-	if len(nodes) < es.RequiredCount() {
+	x := len(nodes)
+	y := es.RequiredCount()
+	//if len(nodes) < es.RequiredCount() {
+	if x < y {
 		return nil, Error.New("number of nodes (%v) do not match minimum required count (%v) of erasure scheme", len(nodes), es.RequiredCount())
 	}
 
