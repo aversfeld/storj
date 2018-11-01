@@ -5,21 +5,37 @@ package overlay
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"net"
 	"testing"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"go.uber.org/zap"
 
 	"storj.io/storj/pkg/node"
 	"storj.io/storj/pkg/pb"
 	"storj.io/storj/storage"
+	dbx "storj.io/storj/pkg/statdb/dbx"
+	"storj.io/storj/pkg/statdb"
+	statpb "storj.io/storj/pkg/statdb/proto"
 )
 
 func TestFindStorageNodes(t *testing.T) {
-	// TODO(moby) create statdb server/db
-	// TODO(moby) create statdb client connected to statdb server
+	lis, err := net.Listen("tcp", "127.0.0.1:0")
+	assert.NoError(t, err)
+
+	// start statdb server
+	sdbPath := fmt.Sprintf("file:memdb%d?mode=memory&cache=shared", rand.Int63())
+	statServer, err := statdb.NewServer("sqlite3", sdbPath, zap.NewNop())
+	assert.NoError(t, err)
+	db, err := dbx.Open("sqlite3", sdbPath)
+	assert.NoError(t, err)
+	statpb.RegisterStatDBServer(grpc.NewServer(), statServer)
+
+	// TODO(moby) create statdb client
 
 	minRep := &pb.NodeRep{
 		MinUptime: 0.95,
@@ -54,7 +70,17 @@ func TestFindStorageNodes(t *testing.T) {
 			Value: newNodeStorageValue(t, tt.addr), // TODO(moby) add bandwidth/disk
 		})
 
-		// TODO(moby) add node to statdb
+		_, err = db.Create_Node(
+			ctx,
+			dbx.Node_Id(fid.ID.Bytes()),
+			dbx.Node_AuditSuccessCount(0), // irrelevant for test
+			dbx.Node_TotalAuditCount(tt.totalAuditCount),
+			dbx.Node_AuditSuccessRatio(tt.auditRatio),
+			dbx.Node_UptimeSuccessCount(0), // irrelevant for test
+			dbx.Node_TotalUptimeCount(0), // irrelevant for test
+			dbx.Node_UptimeRatio(tt.uptimeRatio),
+		)
+		assert.NoError(t, err)
 
 		if tt.freeDisk >= restrictions.FreeDisk &&
 			tt.totalAuditCount >= minRep.MinAuditCount &&
@@ -63,9 +89,6 @@ func TestFindStorageNodes(t *testing.T) {
 			goodNodeIds = append(goodNodeIds, fid.ID.Bytes())
 		}
 	}
-
-	lis, err := net.Listen("tcp", "127.0.0.1:0")
-	assert.NoError(t, err)
 
 	srv := NewMockServer(mockServerNodeList)
 	assert.NotNil(t, srv)
